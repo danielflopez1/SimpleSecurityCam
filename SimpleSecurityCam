@@ -1,0 +1,64 @@
+# import the opencv library
+import cv2
+import time
+import numpy as np
+import imageio
+
+BUFF_SIZE = 30
+# define a video capture object
+vid = cv2.VideoCapture(0)
+vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)  # 1920 1080
+vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+vid.set(cv2.CAP_PROP_FPS, 30)
+
+
+
+
+# capture(10)
+
+def adapt(image):
+    kernel = np.ones((5, 5), np.uint8)
+    inv_image = (255 - image)
+    img_erosion = cv2.erode(inv_image, kernel, iterations=1)
+    blur = cv2.GaussianBlur(img_erosion, (0, 0), sigmaX=22, sigmaY=22)
+    #cv2.imshow('morph', blur)
+    return blur
+maxs = [0]
+frames = []
+while (True):
+
+    # Capture the video frame
+    # by frame
+    ret, frame = vid.read()
+    frames.append(frame)
+    prvs = adapt(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY))
+    hsv = np.zeros_like(frame)
+    hsv[..., 1] = 255
+    ret, frame = vid.read()
+    frames.append(frame)
+    next = adapt(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY))
+    flow = cv2.calcOpticalFlowFarneback(prev = prvs,next = next,flow =  None,pyr_scale =  0.5,levels =  3,winsize =  50,iterations = 3, poly_n  = 7, poly_sigma =  1.5,flags = 0)
+    #mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
+    #hsv[..., 0] = ang * 180 / np.pi / 2
+    #hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+    avg_dif = np.average(flow) * 10 ** 6
+    print(avg_dif, max(maxs[-20:]))
+    maxs.append(avg_dif)
+    bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    #
+    prvs = next
+    #cv2.imshow('frame', bgr)
+    #print('*' * 50)
+    if(avg_dif>2.5):
+        for _ in range(50):
+            ret, frame = vid.read()
+            frames.append(frame)
+        imageio.mimsave('movie'+str(time.time())+'.gif', frames)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+    frames = frames[-100:]
+
+# After the loop release the cap object
+vid.release()
+# Destroy all the windows
+cv2.destroyAllWindows()
