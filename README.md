@@ -5,7 +5,7 @@ It uses optical flow to see differences in the video frames and you can set the 
 
 View when an event has happened. 
 
-#Installation
+# Installation
 
 pip install imageio
 pip install opencv-python
