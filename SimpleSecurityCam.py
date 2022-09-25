@@ -6,6 +6,7 @@ import imageio
 from datetime import datetime
 BUFF_SIZE = 30
 opticalFlowVisualization = False
+viewOnActivation = True
 # define a video capture object
 vid = cv2.VideoCapture(0)
 vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)  # Set to the maximum the camera can See
@@ -55,10 +56,12 @@ while (True):
         video_name = str(datetime.fromtimestamp(time.time())) #Set video name at time of saving
         for _ in range(200): #Set how many frames you want saved after an event has happened
             ret, frame = vid.read()
-            cv2.imshow('frame', frame)
-            cv2.waitKey(1)
             frames.append(frame)
-        cv2.destroyAllWindows()
+            if viewOnActivation:
+                cv2.imshow('frame', frame)
+                cv2.waitKey(1)
+        if viewOnActivation:
+            cv2.destroyAllWindows()
         print("Saving Video",video_name,end="")
         imageio.mimsave('movie_'+video_name+'.gif', frames)
         print("...Done")
