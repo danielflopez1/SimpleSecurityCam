@@ -11,3 +11,6 @@ pip install imageio
 
 pip install opencv-python
 
+openfile:
+
+python SimpleSecurityCam.py
